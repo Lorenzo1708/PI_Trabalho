@@ -27,20 +27,20 @@ label_accuracy = tkinter.Label(root, text='')
 label_confusion_matrix = tkinter.Label(root, image='')
 
 
-X_testing = []
-X_training = []
-Y_testing = []
-Y_training = []
-X_projection_testing = []
-X_projection_training = []
+x_testing = []
+x_training = []
+y_testing = []
+y_training = []
+x_projection_testing = []
+x_projection_training = []
 
 
 def plot_mlp(mlp) -> None:
-    mlp_prediction = numpy.argmax(mlp.predict(numpy.array(X_projection_testing)), axis=1)
+    mlp_prediction = numpy.argmax(mlp.predict(numpy.array(x_projection_testing)), axis=1)
 
-    mlp_accuracy = sklearn.metrics.accuracy_score(Y_testing, mlp_prediction)
+    mlp_accuracy = sklearn.metrics.accuracy_score(y_testing, mlp_prediction)
 
-    mlp_confusion_matrix = sklearn.metrics.confusion_matrix(Y_testing, mlp_prediction)
+    mlp_confusion_matrix = sklearn.metrics.confusion_matrix(y_testing, mlp_prediction)
 
     matplotlib.pyplot.figure(figsize=(8, 8))
 
@@ -77,7 +77,7 @@ def create_mlp() -> None:
 
     mlp.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
 
-    mlp.fit(numpy.array(X_projection_training), Y_training, epochs=12)
+    mlp.fit(numpy.array(x_projection_training), y_training, epochs=12)
 
     global button_create_mlp
     global label_time_passed
@@ -91,11 +91,11 @@ def create_mlp() -> None:
 
 
 def plot_svm(svm) -> None:
-    svm_prediction = svm.predict(numpy.array(X_projection_testing))
+    svm_prediction = svm.predict(numpy.array(x_projection_testing))
 
-    svm_accuracy = sklearn.metrics.accuracy_score(Y_testing, svm_prediction)
+    svm_accuracy = sklearn.metrics.accuracy_score(y_testing, svm_prediction)
 
-    svm_confusion_matrix = sklearn.metrics.confusion_matrix(Y_testing, svm_prediction)
+    svm_confusion_matrix = sklearn.metrics.confusion_matrix(y_testing, svm_prediction)
 
     matplotlib.pyplot.figure(figsize=(8, 8))
 
@@ -123,7 +123,7 @@ def create_svm() -> None:
 
     svm = sklearn.svm.SVC(C=12)
 
-    svm.fit(numpy.array(X_projection_training), Y_training)
+    svm.fit(numpy.array(x_projection_training), y_training)
 
     global button_create_svm
     global label_time_passed
@@ -191,21 +191,21 @@ def load_mnist() -> None:
 
     mnist = tensorflow.keras.datasets.mnist
 
-    global X_testing
-    global X_training
-    global Y_testing
-    global Y_training
+    global x_testing
+    global x_training
+    global y_testing
+    global y_training
 
-    (X_training, Y_training), (X_testing, Y_testing) = mnist.load_data()
+    (x_training, y_training), (x_testing, y_testing) = mnist.load_data()
 
-    global X_projection_testing
-    global X_projection_training
+    global x_projection_testing
+    global x_projection_training
 
-    for image in X_testing:
-        X_projection_testing.append(calculate_projection(image))
+    for image in x_testing:
+        x_projection_testing.append(calculate_projection(image))
 
-    for image in X_training:
-        X_projection_training.append(calculate_projection(image))
+    for image in x_training:
+        x_projection_training.append(calculate_projection(image))
 
     global button_load_mnist
     global button_create_mlp
