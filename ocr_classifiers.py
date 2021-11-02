@@ -77,7 +77,7 @@ def create_mlp() -> None:
     mlp.add(tensorflow.keras.layers.Input(64))
 
     mlp.add(tensorflow.keras.layers.Dense(128, activation=tensorflow.nn.relu))
-    mlp.add(tensorflow.keras.layers.Dense(256, activation=tensorflow.nn.relu))
+    mlp.add(tensorflow.keras.layers.Dense(128, activation=tensorflow.nn.relu))
 
     mlp.add(tensorflow.keras.layers.Dense(10, activation=tensorflow.nn.softmax))
 

@@ -45,7 +45,7 @@ def predict_mlp() -> None:
     matplotlib.pyplot.figure()
 
     for index, digit in enumerate(digit_image):
-        matplotlib.pyplot.subplot(len(mlp_prediction) % 4, 4, index + 1)
+        matplotlib.pyplot.subplot(4, 6, index + 1)
 
         matplotlib.pyplot.imshow(digit, cmap='gray')
 
@@ -65,7 +65,7 @@ def predict_mlp() -> None:
 
     label_image_prediction = tkinter.Label(root, image=mlp_figure)
 
-    label_image_prediction.grid(row=4, columnspan=3, padx=12, pady=12)
+    label_image_prediction.grid(row=4, column=0, padx=12, pady=12)
 
 
 def predict_svm() -> None:
@@ -76,7 +76,7 @@ def predict_svm() -> None:
     matplotlib.pyplot.figure()
 
     for index, digit in enumerate(digit_image):
-        matplotlib.pyplot.subplot(len(svm_prediction) % 4, 4, index + 1)
+        matplotlib.pyplot.subplot(4, 6, index + 1)
 
         matplotlib.pyplot.imshow(digit, cmap='gray')
 
@@ -96,7 +96,7 @@ def predict_svm() -> None:
 
     label_image_prediction = tkinter.Label(root, image=svm_figure)
 
-    label_image_prediction.grid(row=4, columnspan=3, padx=12, pady=12)
+    label_image_prediction.grid(row=4, column=0, padx=12, pady=12)
 
 
 def interpolate_projection(projection: list) -> list:
@@ -149,7 +149,7 @@ def calculate_projection(image: numpy.ndarray) -> list:
     return tensorflow.keras.utils.normalize(numpy.array(projection), axis=0)[0].tolist()
 
 
-def backGroundColorIsBlack(stats, input_image, labels):
+def backGroundColorIsBlack(stats, image_processed, labels):
     backGroundIsBlack=False
     backGroundFound=False
     x = stats[0]
@@ -161,9 +161,9 @@ def backGroundColorIsBlack(stats, input_image, labels):
     while(i<h and backGroundFound==False):
         while(j<w and backGroundFound==False):
             if labels[i+y][j+x]==0 :
-                if input_image[i+y][j+x] == 0 :
+                backGroundFound=True
+                if image_processed[i+y][j+x] == 0 :
                     backGroundIsBlack=True
-                    backGroundFound=True
             j+=1
         i+=1
     
@@ -183,46 +183,16 @@ def load_image() -> None:
 
     image_processed = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
-    image_processed = cv2.GaussianBlur(image_processed, (11, 11), 0)
+    image_processed = cv2.GaussianBlur(image_processed, (5, 5), 0)
 
     image_processed = cv2.threshold(image_processed, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    labels, stats_array, centroids = cv2.connectedComponentsWithStats(image_processed, 4)[1:]
+    labels, stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[1:3]
 
     if(backGroundColorIsBlack(stats_array[0], image_processed, labels)==False):
         image_processed = cv2.bitwise_not(image_processed)
 
-        labels, stats_array, centroids = cv2.connectedComponentsWithStats(image_processed, 4)[1:]
-
-    stats_array = stats_array[1:]
-
-    centroids = centroids[1:]
-
-    height, width = image_processed.shape
-
-    imagemhorizontal = (height<width)
-
-    notobj = [True for c in centroids]
-
-    desvioX = (height/5)
-    desvioY = (width/5)
-    contador=0
-
-    if(imagemhorizontal):
-        for c in centroids:
-            if(c[1]>((height/2)-desvioX) and c[1]<((height/2)+desvioX)):
-                notobj[contador] = False
-            contador+=1
-
-    else:
-        for c in centroids:
-            if(c[0]>((width/2)-desvioY) and c[0]<((width/2)+desvioY)):
-                notobj[contador] = False
-            contador+=1
-
-    print(notobj)
-
-    stats_array = [stats_array[i] for i in range(0,len(stats_array)) if notobj[i]==False]
+        stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[2][1:]
 
     global digit_image
 
