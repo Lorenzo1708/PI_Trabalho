@@ -17,26 +17,30 @@ import matplotlib.pyplot
 
 
 root = tkinter.Tk()
-
 root.title('OCR')
 
 button_load_image = tkinter.Button(root, text='')
 button_predict_mlp = tkinter.Button(root, text='')
 button_predict_svm = tkinter.Button(root, text='')
 label_time_passed = tkinter.Label(root, text='')
-label_image = tkinter.Label(root, text='')
-label_image_processed = tkinter.Label(root, text='')
+label_image = tkinter.Label(root, image='')
+label_image_processed = tkinter.Label(root, image='')
 
 
 digit_image = []
-
 digit_projection = []
 
 
 def predict_mlp() -> None:
     mlp = tensorflow.keras.models.load_model('output/mlp.model')
 
+    time_passed = time.time()
+
     mlp_prediction = numpy.argmax(mlp.predict(numpy.array(digit_projection)), axis=1)
+
+    global label_time_passed
+
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
 
     matplotlib.pyplot.figure()
 
@@ -60,14 +64,22 @@ def predict_mlp() -> None:
     mlp_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/mlp_prediction.png'))
 
     global label_image
+    global label_image_processed
 
     label_image.config(image=mlp_figure)
+    label_image_processed.config(image='')
 
 
 def predict_svm() -> None:
     svm = joblib.load('output/svm.pkl')
 
+    time_passed = time.time()
+
     svm_prediction = svm.predict(numpy.array(digit_projection))
+
+    global label_time_passed
+
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
 
     matplotlib.pyplot.figure()
 
@@ -90,9 +102,11 @@ def predict_svm() -> None:
 
     svm_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/svm_prediction.png'))
 
-    label_image = tkinter.Label(root, image=svm_figure)
+    global label_image
+    global label_image_processed
 
-    label_image.grid(row=2, columnspan=3, padx=12, pady=12)
+    label_image.config(image=svm_figure)
+    label_image_processed.config(image='')
 
 
 def interpolate_projection(projection: list) -> list:
@@ -186,7 +200,7 @@ def load_image() -> None:
 
     image_processed = cv2.GaussianBlur(image_processed, (11, 11), 0)
 
-    image_processed = cv2.threshold(image_processed, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    image_processed = cv2.threshold(image_processed, 63, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     labels, stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[1:3]
 
@@ -233,29 +247,37 @@ def load_image() -> None:
 
     image_processed = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(image_processed))
 
+    global button_predict_mlp
+    global button_predict_svm
+    global label_time_passed
     global label_image
+    global label_image_processed
 
-    button_predict_mlp = tkinter.Button(root, text='Predizer com o MLP', command=predict_mlp)
-    button_predict_svm = tkinter.Button(root, text='Predizer com o SVM', command=predict_svm)
-    label_time_passed = tkinter.Label(root, text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
-    label_image = tkinter.Label(root, image=image)
-    label_image_processed = tkinter.Label(root, image=image_processed)
-
-    button_predict_mlp.grid(row=0, column=1, padx=12, pady=12)
-    button_predict_svm.grid(row=0, column=2, padx=12, pady=12)
-    label_time_passed.grid(row=1, column=0, padx=12, pady=12)
-    label_image.grid(row=2, columnspan=3, padx=12, pady=12)
-    label_image_processed.grid(row=3, columnspan=3, padx=12, pady=12)
+    button_predict_mlp.config(state=tkinter.constants.ACTIVE)
+    button_predict_svm.config(state=tkinter.constants.ACTIVE)
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
+    label_image.config(image=image)
+    label_image_processed.config(image=image_processed)
 
 
 def main() -> None:
-    button_load_image = tkinter.Button(root, text='Carregar Imagem', command=load_image)
-    button_predict_mlp = tkinter.Button(root, text='Predizer com o MLP', state=tkinter.constants.DISABLED)
-    button_predict_svm = tkinter.Button(root, text='Predizer com o SVM', state=tkinter.constants.DISABLED)
+    global button_load_image
+    global button_predict_mlp
+    global button_predict_svm
+    global label_time_passed
+    global label_image
+    global label_image_processed
+
+    button_load_image.config(text='Carregar Imagem', command=load_image, state=tkinter.constants.ACTIVE)
+    button_predict_mlp.config(text='Predizer com o MLP', command=predict_mlp, state=tkinter.constants.DISABLED)
+    button_predict_svm.config(text='Predizer com o SVM', command=predict_svm, state=tkinter.constants.DISABLED)
 
     button_load_image.grid(row=0, column=0, padx=12, pady=12)
     button_predict_mlp.grid(row=0, column=1, padx=12, pady=12)
     button_predict_svm.grid(row=0, column=2, padx=12, pady=12)
+    label_time_passed.grid(row=1, columnspan=3, padx=12, pady=12)
+    label_image.grid(row=2, columnspan=3, padx=12, pady=12)
+    label_image_processed.grid(row=3, columnspan=3, padx=12, pady=12)
 
     root.mainloop()
 

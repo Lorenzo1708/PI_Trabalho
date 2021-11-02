@@ -17,7 +17,6 @@ import matplotlib.pyplot
 
 
 root = tkinter.Tk()
-
 root.title('MLP e SVM')
 
 button_load_mnist = tkinter.Button(root, text='')
@@ -25,25 +24,23 @@ button_create_mlp = tkinter.Button(root, text='')
 button_create_svm = tkinter.Button(root, text='')
 label_time_passed = tkinter.Label(root, text='')
 label_accuracy = tkinter.Label(root, text='')
-label_confusion_matrix = tkinter.Label(root, text='')
+label_confusion_matrix = tkinter.Label(root, image='')
 
 
-image_testing = []
-image_training = []
-
-label_testing = []
-label_training = []
-
-image_projection_testing = []
-image_projection_training = []
+X_testing = []
+X_training = []
+Y_testing = []
+Y_training = []
+X_projection_testing = []
+X_projection_training = []
 
 
 def plot_mlp(mlp) -> None:
-    mlp_prediction = numpy.argmax(mlp.predict(numpy.array(image_projection_testing)), axis=1)
+    mlp_prediction = numpy.argmax(mlp.predict(numpy.array(X_projection_testing)), axis=1)
 
-    mlp_accuracy = sklearn.metrics.accuracy_score(label_testing, mlp_prediction)
+    mlp_accuracy = sklearn.metrics.accuracy_score(Y_testing, mlp_prediction)
 
-    mlp_confusion_matrix = sklearn.metrics.confusion_matrix(label_testing, mlp_prediction)
+    mlp_confusion_matrix = sklearn.metrics.confusion_matrix(Y_testing, mlp_prediction)
 
     matplotlib.pyplot.figure(figsize=(8, 8))
 
@@ -59,11 +56,11 @@ def plot_mlp(mlp) -> None:
 
     mlp_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/mlp_confusion_matrix.png'))
 
-    label_accuracy = tkinter.Label(root, text=f'Acurácia do MLP: {round(mlp_accuracy * 100)}%')
-    label_confusion_matrix = tkinter.Label(root, image=mlp_figure)
+    global label_accuracy
+    global label_confusion_matrix
 
-    label_accuracy.grid(row=2, column=0, padx=12, pady=12)
-    label_confusion_matrix.grid(row=3, columnspan=3, padx=12, pady=12)
+    label_accuracy.config(text=f'Acurácia: {round(mlp_accuracy * 100)}%')
+    label_confusion_matrix.config(image=mlp_figure)
 
 
 def create_mlp() -> None:
@@ -80,25 +77,25 @@ def create_mlp() -> None:
 
     mlp.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
 
-    mlp.fit(numpy.array(image_projection_training), label_training, epochs=12)
+    mlp.fit(numpy.array(X_projection_training), Y_training, epochs=12)
+
+    global button_create_mlp
+    global label_time_passed
+
+    button_create_mlp.config(text='Criar o MLP', state=tkinter.constants.DISABLED)
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
 
     mlp.save('output/mlp.model')
 
     plot_mlp(mlp)
 
-    button_create_mlp = tkinter.Button(root, text='Criar o MLP', state=tkinter.constants.DISABLED)
-    label_time_passed = tkinter.Label(root, text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
-
-    button_create_mlp.grid(row=0, column=1, padx=12, pady=12)
-    label_time_passed.grid(row=1, column=0, padx=12, pady=12)
-
 
 def plot_svm(svm) -> None:
-    svm_prediction = svm.predict(numpy.array(image_projection_testing))
+    svm_prediction = svm.predict(numpy.array(X_projection_testing))
 
-    svm_accuracy = sklearn.metrics.accuracy_score(label_testing, svm_prediction)
+    svm_accuracy = sklearn.metrics.accuracy_score(Y_testing, svm_prediction)
 
-    svm_confusion_matrix = sklearn.metrics.confusion_matrix(label_testing, svm_prediction)
+    svm_confusion_matrix = sklearn.metrics.confusion_matrix(Y_testing, svm_prediction)
 
     matplotlib.pyplot.figure(figsize=(8, 8))
 
@@ -114,11 +111,11 @@ def plot_svm(svm) -> None:
 
     svm_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/svm_confusion_matrix.png'))
 
-    label_accuracy = tkinter.Label(root, text=f'Acurácia do SVM: {round(svm_accuracy * 100)}%')
-    label_confusion_matrix = tkinter.Label(root, image=svm_figure)
+    global label_accuracy
+    global label_confusion_matrix
 
-    label_accuracy.grid(row=2, column=0, padx=12, pady=12)
-    label_confusion_matrix.grid(row=3, columnspan=3, padx=12, pady=12)
+    label_accuracy.config(text=f'Acurácia: {round(svm_accuracy * 100)}%')
+    label_confusion_matrix.config(image=svm_figure)
 
 
 def create_svm() -> None:
@@ -126,17 +123,17 @@ def create_svm() -> None:
 
     svm = sklearn.svm.SVC(C=12)
 
-    svm.fit(numpy.array(image_projection_training), label_training)
+    svm.fit(numpy.array(X_projection_training), Y_training)
+
+    global button_create_svm
+    global label_time_passed
+
+    button_create_svm.config(text='Criar o SVM', state=tkinter.constants.DISABLED)
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
 
     joblib.dump(svm, 'output/svm.pkl')
     
     plot_svm(svm)
-
-    button_create_svm = tkinter.Button(root, text='Criar o SVM', state=tkinter.constants.DISABLED)
-    label_time_passed = tkinter.Label(root, text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
-
-    button_create_svm.grid(row=0, column=2, padx=12, pady=12)
-    label_time_passed.grid(row=1, column=0, padx=12, pady=12)
 
 
 def interpolate_projection(projection: list) -> list:
@@ -194,42 +191,51 @@ def load_mnist() -> None:
 
     mnist = tensorflow.keras.datasets.mnist
 
-    global image_testing
-    global image_training
+    global X_testing
+    global X_training
+    global Y_testing
+    global Y_training
 
-    global label_testing
-    global label_training
+    (X_training, Y_training), (X_testing, Y_testing) = mnist.load_data()
 
-    (image_training, label_training), (image_testing, label_testing) = mnist.load_data()
+    global X_projection_testing
+    global X_projection_training
 
-    global image_projection_testing
-    global image_projection_training
+    for image in X_testing:
+        X_projection_testing.append(calculate_projection(image))
 
-    for image in image_testing:
-        image_projection_testing.append(calculate_projection(image))
+    for image in X_training:
+        X_projection_training.append(calculate_projection(image))
 
-    for image in image_training:
-        image_projection_training.append(calculate_projection(image))
+    global button_load_mnist
+    global button_create_mlp
+    global button_create_svm
+    global label_time_passed
 
-    button_load_mnist = tkinter.Button(root, text='Carregar o MNIST', state=tkinter.constants.DISABLED)
-    button_create_mlp = tkinter.Button(root, text='Criar o MLP', command=create_mlp)
-    button_create_svm = tkinter.Button(root, text='Criar o SVM', command=create_svm)
-    label_time_passed = tkinter.Label(root, text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
-
-    button_load_mnist.grid(row=0, column=0, padx=12, pady=12)
-    button_create_mlp.grid(row=0, column=1, padx=12, pady=12)
-    button_create_svm.grid(row=0, column=2, padx=12, pady=12)
-    label_time_passed.grid(row=1, column=0, padx=12, pady=12)
+    button_load_mnist.config(state=tkinter.constants.DISABLED)
+    button_create_mlp.config(state=tkinter.constants.ACTIVE)
+    button_create_svm.config(state=tkinter.constants.ACTIVE)
+    label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
 
 
 def main() -> None:
-    button_load_mnist = tkinter.Button(root, text='Carregar MNIST', command=load_mnist)
-    button_create_mlp = tkinter.Button(root, text='Criar o MLP', state=tkinter.constants.DISABLED)
-    button_create_svm = tkinter.Button(root, text='Criar o SVM', state=tkinter.constants.DISABLED)
+    global button_load_mnist
+    global button_create_mlp
+    global button_create_svm
+    global label_time_passed
+    global label_accuracy
+    global label_confusion_matrix
+
+    button_load_mnist.config(text='Carregar MNIST', command=load_mnist, state=tkinter.constants.ACTIVE)
+    button_create_mlp.config(text='Criar o MLP', command=create_mlp, state=tkinter.constants.DISABLED)
+    button_create_svm.config(text='Criar o SVM', command=create_svm, state=tkinter.constants.DISABLED)
 
     button_load_mnist.grid(row=0, column=0, padx=12, pady=12)
     button_create_mlp.grid(row=0, column=1, padx=12, pady=12)
     button_create_svm.grid(row=0, column=2, padx=12, pady=12)
+    label_time_passed.grid(row=1, columnspan=3, padx=12, pady=12)
+    label_accuracy.grid(row=2, columnspan=3, padx=12, pady=12)
+    label_confusion_matrix.grid(row=3, columnspan=3, padx=12, pady=12)
 
     root.mainloop()
 
