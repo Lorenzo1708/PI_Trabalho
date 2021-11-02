@@ -1,10 +1,7 @@
-# Nomes e Matrículas
-# OCR
-
-
 import cv2
 import PIL.Image
 import PIL.ImageTk
+import math
 import time
 import numpy
 import scipy.interpolate
@@ -29,7 +26,6 @@ button_predict_svm = tkinter.Button(root, text='')
 label_time_passed = tkinter.Label(root, text='')
 label_image = tkinter.Label(root, text='')
 label_image_processed = tkinter.Label(root, text='')
-label_image_prediction = tkinter.Label(root, text='')
 
 
 digit_image = []
@@ -45,7 +41,7 @@ def predict_mlp() -> None:
     matplotlib.pyplot.figure()
 
     for index, digit in enumerate(digit_image):
-        matplotlib.pyplot.subplot(4, 6, index + 1)
+        matplotlib.pyplot.subplot(math.ceil(len(mlp_prediction) / 4), 4, index + 1)
 
         matplotlib.pyplot.imshow(digit, cmap='gray')
 
@@ -63,9 +59,9 @@ def predict_mlp() -> None:
 
     mlp_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/mlp_prediction.png'))
 
-    label_image_prediction = tkinter.Label(root, image=mlp_figure)
+    global label_image
 
-    label_image_prediction.grid(row=4, column=0, padx=12, pady=12)
+    label_image.config(image=mlp_figure)
 
 
 def predict_svm() -> None:
@@ -76,7 +72,7 @@ def predict_svm() -> None:
     matplotlib.pyplot.figure()
 
     for index, digit in enumerate(digit_image):
-        matplotlib.pyplot.subplot(4, 6, index + 1)
+        matplotlib.pyplot.subplot(math.ceil(len(svm_prediction) / 4), 4, index + 1)
 
         matplotlib.pyplot.imshow(digit, cmap='gray')
 
@@ -94,9 +90,9 @@ def predict_svm() -> None:
 
     svm_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/svm_prediction.png'))
 
-    label_image_prediction = tkinter.Label(root, image=svm_figure)
+    label_image = tkinter.Label(root, image=svm_figure)
 
-    label_image_prediction.grid(row=4, column=0, padx=12, pady=12)
+    label_image.grid(row=2, columnspan=3, padx=12, pady=12)
 
 
 def interpolate_projection(projection: list) -> list:
@@ -152,16 +148,21 @@ def calculate_projection(image: numpy.ndarray) -> list:
 def backGroundColorIsBlack(stats, image_processed, labels):
     backGroundIsBlack=False
     backGroundFound=False
-    x = stats[0]
-    y = stats[1]
-    w = stats[2]
-    h = stats[3]
+    BACK_GROUND_LABEL=0
+    x = stats[0] #menor posição no eixo X do digito
+    y = stats[1] #menor posição no eixo Y do digito
+    w = stats[2] #largura do digito
+    h = stats[3] #altura do digito
     i=0
-    j=0
+    #percorrer a imagem processada enquanto a i for menor que a altura e j for menor que a largura do digito
+    #e o fundo não for encontrado
     while(i<h and backGroundFound==False):
+        j=0
         while(j<w and backGroundFound==False):
-            if labels[i+y][j+x]==0 :
+            #se o pixel na posição atual pertence ao fundo o fundo foi encontrado    
+            if labels[i+y][j+x] == BACK_GROUND_LABEL :
                 backGroundFound=True
+                #se o pixel na posição atual é preto
                 if image_processed[i+y][j+x] == 0 :
                     backGroundIsBlack=True
             j+=1
@@ -183,7 +184,7 @@ def load_image() -> None:
 
     image_processed = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
-    image_processed = cv2.GaussianBlur(image_processed, (5, 5), 0)
+    image_processed = cv2.GaussianBlur(image_processed, (11, 11), 0)
 
     image_processed = cv2.threshold(image_processed, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
@@ -192,13 +193,13 @@ def load_image() -> None:
     if(backGroundColorIsBlack(stats_array[0], image_processed, labels)==False):
         image_processed = cv2.bitwise_not(image_processed)
 
-        stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[2][1:]
+        stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[2]
 
     global digit_image
 
     global digit_projection
 
-    for stats in stats_array:
+    for stats in stats_array[1:]:
         x = stats[0]
         y = stats[1]
         w = stats[2]
@@ -231,6 +232,8 @@ def load_image() -> None:
         cv2.rectangle(image_processed, (x, y), (x + w, y + h), (255, 255, 255), 2)
 
     image_processed = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(image_processed))
+
+    global label_image
 
     button_predict_mlp = tkinter.Button(root, text='Predizer com o MLP', command=predict_mlp)
     button_predict_svm = tkinter.Button(root, text='Predizer com o SVM', command=predict_svm)

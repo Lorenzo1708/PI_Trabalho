@@ -1,10 +1,7 @@
-# Nomes e Matrículas
-# MLP e SVM
-
-
 import cv2
 import PIL.Image
 import PIL.ImageTk
+import math
 import time
 import numpy
 import scipy.interpolate
