@@ -35,14 +35,22 @@ x_projection_testing = []
 x_projection_training = []
 
 
+# Função para plotar as predições realizadas pelo MLP para o Data Set de testes do MNIST.
 def plot_mlp(mlp) -> None:
+    # Obter o vetor de predições.
+    # Para o caso do MLP, é necessário utilizar-se o método "argmax" do Numpy,
+    # uma vez que que as predições estão contidas em vetores de probabilidade,
+    # sendo a probabilidade mais alta a predição.
     mlp_prediction = numpy.argmax(mlp.predict(numpy.array(x_projection_testing)), axis=1)
 
+    # Calcular a acurácia para os testes.
     mlp_accuracy = sklearn.metrics.accuracy_score(y_testing, mlp_prediction)
 
+    # Calcular a matriz de confusão para os testes.
     mlp_confusion_matrix = sklearn.metrics.confusion_matrix(y_testing, mlp_prediction)
 
-    matplotlib.pyplot.figure(figsize=(8, 8))
+    # Plotar em um mapa de calor a matriz de confusão.
+    matplotlib.pyplot.figure(figsize=(10, 10))
 
     seaborn.heatmap(mlp_confusion_matrix, annot=True, annot_kws={'size': 16}, fmt='g')
 
@@ -54,7 +62,12 @@ def plot_mlp(mlp) -> None:
 
     matplotlib.pyplot.close(mlp_figure)
 
-    mlp_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/mlp_confusion_matrix.png'))
+    mlp_figure = PIL.Image.open('output/mlp_confusion_matrix.png')
+
+    while mlp_figure.height > 768 or mlp_figure.width > 768:
+        mlp_figure = mlp_figure.resize((round(mlp_figure.height * 0.75), round(mlp_figure.width * 0.75)))
+
+    mlp_figure = PIL.ImageTk.PhotoImage(mlp_figure)
 
     global label_accuracy
     global label_confusion_matrix
@@ -90,14 +103,19 @@ def create_mlp() -> None:
     plot_mlp(mlp)
 
 
+# Função para plotar as predições realizadas pelo SVM para o Data Set de testes do MNIST.
 def plot_svm(svm) -> None:
+    # Obter o vetor de predições.
     svm_prediction = svm.predict(numpy.array(x_projection_testing))
 
+    # Calcular a acurácia para os testes.
     svm_accuracy = sklearn.metrics.accuracy_score(y_testing, svm_prediction)
 
+    # Calcular a matriz de confusão para os testes.
     svm_confusion_matrix = sklearn.metrics.confusion_matrix(y_testing, svm_prediction)
 
-    matplotlib.pyplot.figure(figsize=(8, 8))
+    # Plotar em um mapa de calor a matriz de confusão.
+    matplotlib.pyplot.figure(figsize=(10, 10))
 
     seaborn.heatmap(svm_confusion_matrix, annot=True, annot_kws={'size': 16}, fmt='g')
 
@@ -109,7 +127,12 @@ def plot_svm(svm) -> None:
 
     matplotlib.pyplot.close(svm_figure)
 
-    svm_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/svm_confusion_matrix.png'))
+    svm_figure = PIL.Image.open('output/svm_confusion_matrix.png')
+
+    while svm_figure.height > 768 or svm_figure.width > 768:
+        svm_figure = svm_figure.resize((round(svm_figure.height * 0.75), round(svm_figure.width * 0.75)))
+
+    svm_figure = PIL.ImageTk.PhotoImage(svm_figure)
 
     global label_accuracy
     global label_confusion_matrix

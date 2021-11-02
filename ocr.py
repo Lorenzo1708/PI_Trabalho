@@ -61,7 +61,12 @@ def predict_mlp() -> None:
 
     matplotlib.pyplot.close(mlp_figure)
 
-    mlp_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/mlp_prediction.png'))
+    mlp_figure = PIL.Image.open('output/mlp_prediction.png')
+
+    while mlp_figure.height > 768 or mlp_figure.width > 768:
+        mlp_figure = mlp_figure.resize((round(mlp_figure.height * 0.75), round(mlp_figure.width * 0.75)))
+
+    mlp_figure = PIL.ImageTk.PhotoImage(mlp_figure)
 
     global label_image
     global label_image_processed
@@ -100,7 +105,12 @@ def predict_svm() -> None:
 
     matplotlib.pyplot.close(svm_figure)
 
-    svm_figure = PIL.ImageTk.PhotoImage(PIL.Image.open('output/svm_prediction.png'))
+    svm_figure = PIL.Image.open('output/svm_prediction.png')
+
+    while svm_figure.height > 768 or svm_figure.width > 768:
+        svm_figure = svm_figure.resize((round(svm_figure.height * 0.75), round(svm_figure.width * 0.75)))
+
+    svm_figure = PIL.ImageTk.PhotoImage(svm_figure)
 
     global label_image
     global label_image_processed
@@ -108,16 +118,17 @@ def predict_svm() -> None:
     label_image.config(image=svm_figure)
     label_image_processed.config(image='')
 
-
+#Interpola projeção
 def interpolate_projection(projection: list) -> list:
     function = scipy.interpolate.interp1d(numpy.arange(0, len(projection)), projection)
 
     return function(numpy.linspace(0.0, len(projection) - 1, 32)).tolist()
 
-
+#Calcula projeção horizontal
 def calculate_h_projection(image: numpy.ndarray, h: int, w: int) -> list:
     h_projection = []
 
+    #Soma os pixels das colunas das imagens
     for i in range(h):
         pixel_color_count = 0
 
@@ -128,10 +139,11 @@ def calculate_h_projection(image: numpy.ndarray, h: int, w: int) -> list:
 
     return h_projection
 
-
+#Calcula projeção vertical
 def calculate_v_projection(image: numpy.ndarray, h: int, w: int) -> list:
     v_projection = []
 
+    #Soma os pixels das linhas das imagens
     for i in range(h):
         pixel_color_count = 0
 
@@ -142,17 +154,17 @@ def calculate_v_projection(image: numpy.ndarray, h: int, w: int) -> list:
 
     return v_projection
 
-
+#Calcula a projeção
 def calculate_projection(image: numpy.ndarray) -> list:
     h, w = image.shape
 
-    h_projection = calculate_h_projection(image, h, w)
+    h_projection = calculate_h_projection(image, h, w)#Calcula projeção horizontal
 
-    v_projection = calculate_v_projection(image, h, w)
+    v_projection = calculate_v_projection(image, h, w)#Calcula projeção vertical
 
-    h_projection = interpolate_projection(h_projection)
+    h_projection = interpolate_projection(h_projection)#Interpola projeção horizontal
 
-    v_projection = interpolate_projection(v_projection)
+    v_projection = interpolate_projection(v_projection)#Interpola projeção vertical
 
     projection = h_projection + v_projection
 
@@ -192,7 +204,12 @@ def load_image() -> None:
 
     global image
 
-    image = PIL.ImageTk.PhotoImage(PIL.Image.open(image_path))
+    image = PIL.Image.open(image_path)
+
+    while image.height > 768 or image.width > 768:
+        image = image.resize((round(image.height * 0.75), round(image.width * 0.75)))
+
+    image = PIL.ImageTk.PhotoImage(image)
 
     global image_processed
 
@@ -213,19 +230,22 @@ def load_image() -> None:
 
     global digit_projection
 
+#Separa os dígitos da imagem colocando-os em outras imagens separadas
     for stats in stats_array[1:]:
-        x = stats[0]
-        y = stats[1]
-        w = stats[2]
-        h = stats[3]
+        x = stats[0] #menor posição no eixo X do digito
+        y = stats[1] #menor posição no eixo Y do digito
+        w = stats[2] #largura do digito
+        h = stats[3] #altura do digito
 
         digit = []
 
+        #Inicializa o array da imagem com o dígito segmentado
         for i in range(h):
             digit.append([])
 
             digit[i] = [0 for j in range(w)]
 
+        #Copia o digito para a imagem
         for i in range(h):
             for j in range(w):
                 digit[i][j] = image_processed[i + y][j + x]
@@ -245,7 +265,12 @@ def load_image() -> None:
 
         cv2.rectangle(image_processed, (x, y), (x + w, y + h), (255, 255, 255), 2)
 
-    image_processed = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(image_processed))
+    image_processed = PIL.Image.fromarray(image_processed)
+
+    while image_processed.height > 768 or image_processed.width > 768:
+        image_processed = image_processed.resize((round(image_processed.height * 0.75), round(image_processed.width * 0.75)))
+
+    image_processed = PIL.ImageTk.PhotoImage(image_processed)
 
     global button_predict_mlp
     global button_predict_svm
