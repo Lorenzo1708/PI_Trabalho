@@ -51,21 +51,20 @@ def plot_mlp(mlp) -> None:
 
     # Plotar em um mapa de calor a matriz de confusão.
     matplotlib.pyplot.figure(figsize=(10, 10))
-
     seaborn.heatmap(mlp_confusion_matrix, annot=True, annot_kws={'size': 16}, fmt='g')
-
     matplotlib.pyplot.title('Matriz de Confusão do MLP')
 
     global mlp_figure
 
+    # É necessário salvar a imagem como um PNG e reabrí-la com o PIL.Image,
+    # para que ela possa aparecer na interface do Tkinter.
     mlp_figure = matplotlib.pyplot.savefig('output/mlp_confusion_matrix.png')
-
     matplotlib.pyplot.close(mlp_figure)
-
     mlp_figure = PIL.Image.open('output/mlp_confusion_matrix.png')
 
-    while mlp_figure.height > 768 or mlp_figure.width > 768:
-        mlp_figure = mlp_figure.resize((round(mlp_figure.height * 0.75), round(mlp_figure.width * 0.75)))
+    # Diminuir o tamanho da imagem proporcionalmente para que ela caiba na interface.
+    while mlp_figure.height > 512 or mlp_figure.width > 512:
+        mlp_figure = mlp_figure.resize((round(mlp_figure.width * 0.75), round(mlp_figure.height * 0.75)))
 
     mlp_figure = PIL.ImageTk.PhotoImage(mlp_figure)
 
@@ -116,21 +115,20 @@ def plot_svm(svm) -> None:
 
     # Plotar em um mapa de calor a matriz de confusão.
     matplotlib.pyplot.figure(figsize=(10, 10))
-
     seaborn.heatmap(svm_confusion_matrix, annot=True, annot_kws={'size': 16}, fmt='g')
-
     matplotlib.pyplot.title('Matriz de Confusão do SVM')
 
     global svm_figure
 
+    # É necessário salvar a imagem como um PNG e reabrí-la com o PIL.Image,
+    # para que ela possa aparecer na interface do Tkinter.
     svm_figure = matplotlib.pyplot.savefig('output/svm_confusion_matrix.png')
-
     matplotlib.pyplot.close(svm_figure)
-
     svm_figure = PIL.Image.open('output/svm_confusion_matrix.png')
 
-    while svm_figure.height > 768 or svm_figure.width > 768:
-        svm_figure = svm_figure.resize((round(svm_figure.height * 0.75), round(svm_figure.width * 0.75)))
+    # Diminuir o tamanho da imagem proporcionalmente para que ela caiba na interface.
+    while svm_figure.height > 512 or svm_figure.width > 512:
+        svm_figure = svm_figure.resize((round(svm_figure.width * 0.75), round(svm_figure.height * 0.75)))
 
     svm_figure = PIL.ImageTk.PhotoImage(svm_figure)
 
@@ -159,12 +157,14 @@ def create_svm() -> None:
     plot_svm(svm)
 
 
+# Função para interpolar as projeções de uma imagem para 32 elementos.
 def interpolate_projection(projection: list) -> list:
     function = scipy.interpolate.interp1d(numpy.arange(0, len(projection)), projection)
 
     return function(numpy.linspace(0.0, len(projection) - 1, 32)).tolist()
 
 
+# Função para calcular a projeção horizontal de uma imagem.
 def calculate_h_projection(image: numpy.ndarray, h: int, w: int) -> list:
     h_projection = []
 
@@ -179,6 +179,7 @@ def calculate_h_projection(image: numpy.ndarray, h: int, w: int) -> list:
     return h_projection
 
 
+# Função para calcular a projeção vertical de uma imagem.
 def calculate_v_projection(image: numpy.ndarray, h: int, w: int) -> list:
     v_projection = []
 
@@ -193,6 +194,7 @@ def calculate_v_projection(image: numpy.ndarray, h: int, w: int) -> list:
     return v_projection
 
 
+# Função para calcular as projeções horizontal e vertical de uma imagem e concatená-las em uma única projeção.
 def calculate_projection(image: numpy.ndarray) -> list:
     h, w = image.shape
 
@@ -206,6 +208,7 @@ def calculate_projection(image: numpy.ndarray) -> list:
 
     projection = h_projection + v_projection
 
+    # Normalizar os valores da projeção para um intervalo de 0 até 1.
     return tensorflow.keras.utils.normalize(numpy.array(projection), axis=0)[0].tolist()
 
 
@@ -219,6 +222,7 @@ def load_mnist() -> None:
     global y_testing
     global y_training
 
+    # Ler os Data Sets de treino e testes do MNIST.
     (x_training, y_training), (x_testing, y_testing) = mnist.load_data()
 
     global x_projection_testing

@@ -63,8 +63,8 @@ def predict_mlp() -> None:
 
     mlp_figure = PIL.Image.open('output/mlp_prediction.png')
 
-    while mlp_figure.height > 768 or mlp_figure.width > 768:
-        mlp_figure = mlp_figure.resize((round(mlp_figure.height * 0.75), round(mlp_figure.width * 0.75)))
+    while mlp_figure.height > 512 or mlp_figure.width > 512:
+        mlp_figure = mlp_figure.resize((round(mlp_figure.width * 0.75), round(mlp_figure.height * 0.75)))
 
     mlp_figure = PIL.ImageTk.PhotoImage(mlp_figure)
 
@@ -107,8 +107,8 @@ def predict_svm() -> None:
 
     svm_figure = PIL.Image.open('output/svm_prediction.png')
 
-    while svm_figure.height > 768 or svm_figure.width > 768:
-        svm_figure = svm_figure.resize((round(svm_figure.height * 0.75), round(svm_figure.width * 0.75)))
+    while svm_figure.height > 512 or svm_figure.width > 512:
+        svm_figure = svm_figure.resize((round(svm_figure.width * 0.75), round(svm_figure.height * 0.75)))
 
     svm_figure = PIL.ImageTk.PhotoImage(svm_figure)
 
@@ -206,8 +206,8 @@ def load_image() -> None:
 
     image = PIL.Image.open(image_path)
 
-    while image.height > 768 or image.width > 768:
-        image = image.resize((round(image.height * 0.75), round(image.width * 0.75)))
+    while image.height > 512 or image.width > 512:
+        image = image.resize((round(image.width * 0.75), round(image.height * 0.75)))
 
     image = PIL.ImageTk.PhotoImage(image)
 
@@ -227,10 +227,12 @@ def load_image() -> None:
         stats_array = cv2.connectedComponentsWithStats(image_processed, 4)[2]
 
     global digit_image
-
     global digit_projection
 
-#Separa os dígitos da imagem colocando-os em outras imagens separadas
+    digit_image = []
+    digit_projection = []
+
+    #Separa os dígitos da imagem colocando-os em outras imagens separadas
     for stats in stats_array[1:]:
         x = stats[0] #menor posição no eixo X do digito
         y = stats[1] #menor posição no eixo Y do digito
@@ -267,8 +269,8 @@ def load_image() -> None:
 
     image_processed = PIL.Image.fromarray(image_processed)
 
-    while image_processed.height > 768 or image_processed.width > 768:
-        image_processed = image_processed.resize((round(image_processed.height * 0.75), round(image_processed.width * 0.75)))
+    while image_processed.height > 512 or image_processed.width > 512:
+        image_processed = image_processed.resize((round(image_processed.width * 0.75), round(image_processed.height * 0.75)))
 
     image_processed = PIL.ImageTk.PhotoImage(image_processed)
 
@@ -283,7 +285,6 @@ def load_image() -> None:
     label_time_passed.config(text=f'Tempo Total: {round(time.time() - time_passed, 2)}s')
     label_image.config(image=image)
     label_image_processed.config(image=image_processed)
-
 
 def main() -> None:
     global button_load_image
